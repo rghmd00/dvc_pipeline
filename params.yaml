@@ -1,0 +1,21 @@
+data:
+  train_csv: data/raw/train.csv
+  test_size: 0.2
+  random_state: 42
+
+model:
+  logistic_regression:
+    max_iter: 1000
+  random_forest:
+    n_estimators: 100
+    random_state: 42
+
+logging:
+  level: "INFO"
+
+model_output: "models/predictor.pkl"
+
+
+
+processed_data:
+  train: data/processed/processed_train.csv

@@ -1,3 +1,17 @@
 stages:
   train_model:
-    cmd: \
+    cmd: python src/pipeline.py
+    deps:
+    - data/raw/train.csv
+    - src/data_loader.py
+    - src/pipeline.py
+    - src/preprocessing.py
+    - src/save_model.py
+    - src/train_model.py
+    params:
+    - model.logistic_regression.max_iter
+    - model.random_forest.n_estimators
+    - model.random_forest.random_state
+    - model_output
+    outs:
+    - models/predictor.pkl

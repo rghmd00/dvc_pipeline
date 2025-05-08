@@ -2,3 +2,4 @@ pandas
 scikit-learn
 hydra-core
 omegaconf
+dvc

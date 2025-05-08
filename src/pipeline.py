@@ -1,4 +1,6 @@
 # src/pipeline.py
+import dvc.api
+
 
 import hydra
 from omegaconf import DictConfig

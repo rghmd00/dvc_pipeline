@@ -1,7 +1,5 @@
 import pandas as pd
-
-# file_path = "./../data/raw/train.csv"
-
+import dvc.api
 
 
 def load_data(file_path: str) -> pd.DataFrame:
@@ -18,3 +16,10 @@ def load_data(file_path: str) -> pd.DataFrame:
     except Exception as e:
         print(f"An error occurred: {e}")
         raise
+
+
+if __name__ == "__main__":
+    cfg = dvc.api.params_show("d:/ITI/10-MLOPS/dvc_test/ITI-MLOps/params.yaml") 
+    file_path = cfg["data"]["train_csv"]
+    data = load_data(file_path)
+    print("Data loaded successfully")
