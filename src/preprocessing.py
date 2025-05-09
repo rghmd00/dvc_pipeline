@@ -25,6 +25,5 @@ if __name__ == "__main__":
     processed_data = wrangle(data)
     print("Data wrangling completed successfully")
 
-
     processed_data.to_csv("data/processed/processed_train.csv", index=False)
     print("Processed data saved to data/processed/processed_train.csv")

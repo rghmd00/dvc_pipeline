@@ -1,3 +1,24 @@
 stages:
   preprocess_data:
-    cmd: \
+    cmd: python src/preprocessing.py
+    deps:
+    - data/raw/train.csv
+    - params.yaml
+    - src/preprocessing.py
+    outs:
+    - data/processed/processed_train.csv
+  train_model:
+    cmd: python src/train.py
+    deps:
+    - data/processed/processed_train.csv
+    - params.yaml
+    - src/train.py
+  save_model:
+    cmd: python src/save_model.py
+    deps:
+    - data/processed/processed_train.csv
+    - params.yaml
+    - src/save_model.py
+    outs:
+    - model/logistic_regression_model.pkl
+    - model/random_forest_model.pkl
