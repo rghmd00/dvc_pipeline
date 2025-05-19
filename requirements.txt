@@ -3,3 +3,10 @@ scikit-learn
 hydra-core
 omegaconf
 dvc
+
+fastapi
+uvicorn
+pydantic
+requests
+mlflow
+numpy
