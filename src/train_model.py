@@ -9,10 +9,9 @@ import pandas as pd
 import joblib 
 
 
-dagshub.auth.add_app_token(token="64dba0bfb5a93060a3285d63f7a58f6527ecbe61")
-
-# $env:DAGSHUB_TOKEN="64dba0bfb5a93060a3285d63f7a58f6527ecbe61"
-# $env:MLFLOW_TRACKING_URI="https://dagshub.com/rghmd00/test.mlflow"
+import os
+import dagshub.auth
+dagshub.auth.add_app_token(token=os.getenv("DAGSHUB_TOKEN"))
 
 
 
@@ -71,7 +70,7 @@ def train_models(train_df, cfg):
 
 # Main execution
 if __name__ == "__main__":
-    cfg = dvc.api.params_show("d:/ITI/10-MLOPS/dvc_test/ITI-MLOps/params.yaml")
+    cfg = dvc.api.params_show("./params.yaml")
     file_path = cfg["processed_data"]["train"]
     train_df = pd.read_csv(file_path)
     print("Data loaded successfully")

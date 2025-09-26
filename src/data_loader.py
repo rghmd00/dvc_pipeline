@@ -19,7 +19,7 @@ def load_data(file_path: str) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    cfg = dvc.api.params_show("d:/ITI/10-MLOPS/dvc_test/ITI-MLOps/params.yaml") 
+    cfg = dvc.api.params_show("./params.yaml") 
     file_path = cfg["data"]["train_csv"]
     data = load_data(file_path)
     print("Data loaded successfully")

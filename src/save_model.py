@@ -11,7 +11,7 @@ def save_model(predictor, path):
 
 if __name__ == "__main__":
     # Load configuration and data
-    cfg = dvc.api.params_show("d:/ITI/10-MLOPS/dvc_test/ITI-MLOps/params.yaml")
+    cfg = dvc.api.params_show("./params.yaml")
     file_path = cfg["processed_data"]["train"]
     train_df = pd.read_csv(file_path)
 
