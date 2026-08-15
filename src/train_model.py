@@ -1,4 +1,6 @@
+import os
 import mlflow
+import mlflow.sklearn
 import dagshub
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -7,12 +9,13 @@ from sklearn.model_selection import train_test_split
 import dvc.api
 import pandas as pd
 import joblib 
+from dotenv import load_dotenv
 
+load_dotenv()  
 
-import os
-import dagshub.auth
-dagshub.auth.add_app_token(token=os.getenv("DAGSHUB_TOKEN"))
-
+token = os.getenv("DAGSHUB_TOKEN")
+if not token:
+    raise ValueError("DAGSHUB_TOKEN environment variable is not set.")
 
 
 dagshub.init(repo_owner='rghmd00', repo_name='test', mlflow=True)
@@ -24,6 +27,8 @@ mlflow.set_tracking_uri('https://dagshub.com/rghmd00/test.mlflow')  # Or your ML
 
 
 
+
+trained_models = {}
 
 def train_models(train_df, cfg):
     X = train_df.drop(columns=["Survived"])
@@ -41,29 +46,26 @@ def train_models(train_df, cfg):
         )
     }
 
-    trained_models = {}
 
     # Start MLflow tracking
     with mlflow.start_run():
-
+        
         for name, model in models.items():
             model.fit(X_train, y_train)
             y_pred = model.predict(X_test)
-            acc = accuracy_score(y_test, y_pred)
-            print(f"{name} Accuracy: {acc:.4f}")
+            accuracy = accuracy_score(y_test, y_pred)
+            print(f"{name} Accuracy: {accuracy:.4f}")
 
             # Log model to MLflow
-            mlflow.sklearn.log_model(model, f"model/{name}")
-            mlflow.log_metric(f"{name}_accuracy", acc)
+            # use explicit mlflow.sklearn import to avoid "sklearn is not exported from mlflow" errors
+            mlflow.sklearn.log_model(model, f"model/{name}") #type: ignore
+            mlflow.log_metric(f"{name}_accuracy", accuracy) #type: ignore
 
             # Save model locally (optional)
             joblib.dump(model, f"models/{name}_model.pkl")
             trained_models[name] = model
 
 
-
-            if name == "random_forest":  # For example, register only the random forest model
-                mlflow.register_model(f"runs:/{mlflow.active_run().info.run_id}/model/{name}", f"{name}_model")
 
 
     return trained_models
@@ -75,4 +77,8 @@ if __name__ == "__main__":
     train_df = pd.read_csv(file_path)
     print("Data loaded successfully")
     models = train_models(train_df, cfg)
+
+
+
+
 
