@@ -1,29 +1,27 @@
-import dvc.api
-import pandas as pd
-import pickle
-from train_model import train_models  # Adjust path if needed
 
 
-def save_model(predictor, path):
-    with open(path, "wb") as f:
-        pickle.dump(predictor, f)
+import json
+import joblib
+
+MODEL_NAMES = ["logistic_regression", "random_forest"]
+
+
+def load_trained_model(name: str):
+    return joblib.load(f"models/{name}_model.pkl")
+
+
+def select_best_model(metrics_by_model: dict, metric: str = "accuracy") -> str:
+    return max(metrics_by_model, key=lambda name: metrics_by_model[name][metric])
 
 
 if __name__ == "__main__":
-    # Load configuration and data
-    cfg = dvc.api.params_show("./params.yaml")
-    file_path = cfg["processed_data"]["train"]
-    train_df = pd.read_csv(file_path)
 
-    # Train models and retrieve the Random Forest model
-    models = train_models(train_df, cfg)
-    rf_model = models["random_forest"]
+    with open("models/metrics.json") as f:
+        metrics_by_model = json.load(f)
 
-    logistic_model = models["logistic_regression"]
-    # Save the trained Logistic Regression model        
-    save_model(logistic_model, "models/logistic_regression_model.pkl")
-    print("Logistic Regression model saved successfully.")
+    best_name = select_best_model(metrics_by_model, metric="accuracy")
+    best_model = load_trained_model(best_name)
 
-    # Save the trained Random Forest model
-    save_model(rf_model, "models/random_forest_model.pkl")
-    print("Random Forest model saved successfully.")
+    joblib.dump(best_model, "models/best_model.pkl")
+    print(f"Best model: {best_name} (accuracy={metrics_by_model[best_name]['accuracy']:.4f})")
+    print("Saved to models/best_model.pkl")

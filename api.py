@@ -1,56 +1,54 @@
 import os
-import pickle
+import logging
+
 import joblib
-import litserve as ls
 import pandas as pd
+import litserve as ls
+from pydantic import BaseModel
+
+from src.preprocessing import wrangle
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("inference_api")
+
+MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")
+ENCODER_DIR = os.path.join(MODEL_DIR, "encoders")
+
+
+class PredictRequest(BaseModel):
+    columns: list[str]
+    rows: list[list]
+
 
 class InferenceAPI(ls.LitAPI):
     def setup(self, device="cpu"):
-        # with open(
-        #     os.path.join(
-        #         os.path.dirname(__file__),
-        #         "models",
-        #         "logistic_regression_model.pkl",),
-        #         "rb") as pkl:
-        #     self._model = pickle.load(pkl)
-        self._model = joblib.load(
-            os.path.join(
-                os.path.dirname(__file__),
-                "models",
-                "random_forest_model.pkl"))
-        # print feature names that the model was trained on
-        print("Model loaded successfully")
-        print("Feature names:", self._model.feature_names_in_)
+        model_name = os.getenv("MODEL_NAME", "random_forest_model.pkl")
+        model_path = os.path.join(MODEL_DIR, model_name)
 
-    def decode_request(self, request):
-        try:
-            print(request)
-            columns = request["columns"]
-            rows = request["rows"]
-            df = pd.DataFrame(rows, columns=columns)
-            print(df)
-            return df
-        except Exception:
-            return None
+        self._model = joblib.load(model_path)
+        logger.info(f"Loaded model from {model_path}")
+        logger.info(f"Expected features: {list(self._model.feature_names_in_)}")
+        self._encoder_dir = ENCODER_DIR
+
+    def decode_request(self, request: PredictRequest):
+        df = pd.DataFrame(request.rows, columns=request.columns)
+        df = wrangle(df)
+
+        expected = list(self._model.feature_names_in_)
+        missing = set(expected) - set(df.columns)
+        if missing:
+            raise ls.HTTPException(
+                status_code=400,
+                detail=f"Missing required columns after preprocessing: {sorted(missing)}",
+            )
+
+        return df[expected]
 
     def predict(self, x):
-        print(x)
-        if x is not None:
-            return self._model.predict(x)
-        else:
-            return None
+        return self._model.predict(x)
 
     def encode_response(self, output):
-        if output is None:
-            message = "Error Occurred"
-            response = {
-                "message": message,
-                "data": None,
-            }
-        else:
-            message = "Response Produced Successfully"
-            response = {
-                "message": message,
-                "data": output.tolist(),
-            }
-        return response
+        return {
+            "message": "Response Produced Successfully",
+            "data": output.tolist(),
+        }
